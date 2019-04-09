@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ssl-certificates-guide</title>
+  <style>
+/*
+
+github.com style (c) Vasily Polovnyov <vast@whiteants.net>
+
+*/
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  color: #333;
+  background: #f8f8f8;
+}
+
+.hljs-comment,
+.hljs-template_comment,
+.diff .hljs-header,
+.hljs-javadoc {
+  color: #998;
+  font-style: italic;
+}
+
+.hljs-keyword,
+.css .rule .hljs-keyword,
+.hljs-winutils,
+.javascript .hljs-title,
+.nginx .hljs-title,
+.hljs-subst,
+.hljs-request,
+.hljs-status {
+  color: #333;
+  font-weight: bold;
+}
+
+.hljs-number,
+.hljs-hexcolor,
+.ruby .hljs-constant {
+  color: #099;
+}
+
+.hljs-string,
+.hljs-tag .hljs-value,
+.hljs-phpdoc,
+.tex .hljs-formula {
+  color: #d14;
+}
+
+.hljs-title,
+.hljs-id,
+.coffeescript .hljs-params,
+.scss .hljs-preprocessor {
+  color: #900;
+  font-weight: bold;
+}
+
+.javascript .hljs-title,
+.lisp .hljs-title,
+.clojure .hljs-title,
+.hljs-subst {
+  font-weight: normal;
+}
+
+.hljs-class .hljs-title,
+.haskell .hljs-type,
+.vhdl .hljs-literal,
+.tex .hljs-command {
+  color: #458;
+  font-weight: bold;
+}
+
+.hljs-tag,
+.hljs-tag .hljs-title,
+.hljs-rules .hljs-property,
+.django .hljs-tag .hljs-keyword {
+  color: #000080;
+  font-weight: normal;
+}
+
+.hljs-attribute,
+.hljs-variable,
+.lisp .hljs-body {
+  color: #008080;
+}
+
+.hljs-regexp {
+  color: #009926;
+}
+
+.hljs-symbol,
+.ruby .hljs-symbol .hljs-string,
+.lisp .hljs-keyword,
+.tex .hljs-special,
+.hljs-prompt {
+  color: #990073;
+}
+
+.hljs-built_in,
+.lisp .hljs-title,
+.clojure .hljs-built_in {
+  color: #0086b3;
+}
+
+.hljs-preprocessor,
+.hljs-pragma,
+.hljs-pi,
+.hljs-doctype,
+.hljs-shebang,
+.hljs-cdata {
+  color: #999;
+  font-weight: bold;
+}
+
+.hljs-deletion {
+  background: #fdd;
+}
+
+.hljs-addition {
+  background: #dfd;
+}
+
+.diff .hljs-change {
+  background: #0086b3;
+}
+
+.hljs-chunk {
+  color: #aaa;
+}
+
+/* Base styles */
+/* See https://github.com/sindresorhus/github-markdown-css */
+
+@font-face {
+  font-family: octicons-anchor;
+  src: url(data:font/woff;charset=utf-8;base64,d09GRgABAAAAAAYcAA0AAAAACjQAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABGRlRNAAABMAAAABwAAAAca8vGTk9TLzIAAAFMAAAARAAAAFZG1VHVY21hcAAAAZAAAAA+AAABQgAP9AdjdnQgAAAB0AAAAAQAAAAEACICiGdhc3AAAAHUAAAACAAAAAj//wADZ2x5ZgAAAdwAAADRAAABEKyikaNoZWFkAAACsAAAAC0AAAA2AtXoA2hoZWEAAALgAAAAHAAAACQHngNFaG10eAAAAvwAAAAQAAAAEAwAACJsb2NhAAADDAAAAAoAAAAKALIAVG1heHAAAAMYAAAAHwAAACABEAB2bmFtZQAAAzgAAALBAAAFu3I9x/Nwb3N0AAAF/AAAAB0AAAAvaoFvbwAAAAEAAAAAzBdyYwAAAADP2IQvAAAAAM/bz7t4nGNgZGFgnMDAysDB1Ml0hoGBoR9CM75mMGLkYGBgYmBlZsAKAtJcUxgcPsR8iGF2+O/AEMPsznAYKMwIkgMA5REMOXicY2BgYGaAYBkGRgYQsAHyGMF8FgYFIM0ChED+h5j//yEk/3KoSgZGNgYYk4GRCUgwMaACRoZhDwCs7QgGAAAAIgKIAAAAAf//AAJ4nHWMMQrCQBBF/0zWrCCIKUQsTDCL2EXMohYGSSmorScInsRGL2DOYJe0Ntp7BK+gJ1BxF1stZvjz/v8DRghQzEc4kIgKwiAppcA9LtzKLSkdNhKFY3HF4lK69ExKslx7Xa+vPRVS43G98vG1DnkDMIBUgFN0MDXflU8tbaZOUkXUH0+U27RoRpOIyCKjbMCVejwypzJJG4jIwb43rfl6wbwanocrJm9XFYfskuVC5K/TPyczNU7b84CXcbxks1Un6H6tLH9vf2LRnn8Ax7A5WQAAAHicY2BkYGAA4teL1+yI57f5ysDNwgAC529f0kOmWRiYVgEpDgYmEA8AUzEKsQAAAHicY2BkYGB2+O/AEMPCAAJAkpEBFbAAADgKAe0EAAAiAAAAAAQAAAAEAAAAAAAAKgAqACoAiAAAeJxjYGRgYGBhsGFgYgABEMkFhAwM/xn0QAIAD6YBhwB4nI1Ty07cMBS9QwKlQapQW3VXySvEqDCZGbGaHULiIQ1FKgjWMxknMfLEke2A+IJu+wntrt/QbVf9gG75jK577Lg8K1qQPCfnnnt8fX1NRC/pmjrk/zprC+8D7tBy9DHgBXoWfQ44Av8t4Bj4Z8CLtBL9CniJluPXASf0Lm4CXqFX8Q84dOLnMB17N4c7tBo1AS/Qi+hTwBH4rwHHwN8DXqQ30XXAS7QaLwSc0Gn8NuAVWou/gFmnjLrEaEh9GmDdDGgL3B4JsrRPDU2hTOiMSuJUIdKQQayiAth69r6akSSFqIJuA19TrzCIaY8sIoxyrNIrL//pw7A2iMygkX5vDj+G+kuoLdX4GlGK/8Lnlz6/h9MpmoO9rafrz7ILXEHHaAx95s9lsI7AHNMBWEZHULnfAXwG9/ZqdzLI08iuwRloXE8kfhXYAvE23+23DU3t626rbs8/8adv+9DWknsHp3E17oCf+Z48rvEQNZ78paYM38qfk3v/u3l3u3GXN2Dmvmvpf1Srwk3pB/VSsp512bA/GG5i2WJ7wu430yQ5K3nFGiOqgtmSB5pJVSizwaacmUZzZhXLlZTq8qGGFY2YcSkqbth6aW1tRmlaCFs2016m5qn36SbJrqosG4uMV4aP2PHBmB3tjtmgN2izkGQyLWprekbIntJFing32a5rKWCN/SdSoga45EJykyQ7asZvHQ8PTm6cslIpwyeyjbVltNikc2HTR7YKh9LBl9DADC0U/jLcBZDKrMhUBfQBvXRzLtFtjU9eNHKin0x5InTqb8lNpfKv1s1xHzTXRqgKzek/mb7nB8RZTCDhGEX3kK/8Q75AmUM/eLkfA+0Hi908Kx4eNsMgudg5GLdRD7a84npi+YxNr5i5KIbW5izXas7cHXIMAau1OueZhfj+cOcP3P8MNIWLyYOBuxL6DRylJ4cAAAB4nGNgYoAALjDJyIAOWMCiTIxMLDmZedkABtIBygAAAA==) format('woff');
+}
+
+.markdown-body {
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  color: #333;
+  overflow: hidden;
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+.markdown-body {
+    min-width: 200px;
+    max-width: 790px;
+    margin: 0 auto;
+    padding: 30px;
+}
+
+.markdown-body code.inline {
+  white-space: nowrap;
+}
+
+.markdown-body a {
+  background: transparent;
+}
+
+.markdown-body a:active,
+.markdown-body a:hover {
+  outline: 0;
+}
+
+.markdown-body strong {
+  font-weight: bold;
+}
+
+.markdown-body h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+
+.markdown-body img {
+  border: 0;
+}
+
+.markdown-body hr {
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  height: 0;
+}
+
+.markdown-body pre {
+  overflow: auto;
+}
+
+.markdown-body code,
+.markdown-body kbd,
+.markdown-body pre {
+  font-family: monospace, monospace;
+  font-size: 1em;
+}
+
+.markdown-body input {
+  color: inherit;
+  font: inherit;
+  margin: 0;
+}
+
+.markdown-body html input[disabled] {
+  cursor: default;
+}
+
+.markdown-body input {
+  line-height: normal;
+}
+
+.markdown-body input[type="checkbox"] {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.markdown-body table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.markdown-body td,
+.markdown-body th {
+  padding: 0;
+}
+
+.markdown-body * {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.markdown-body input {
+  font: 13px/1.4 Helvetica, arial, freesans, clean, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+.markdown-body a {
+  color: #4183c4;
+  text-decoration: none;
+}
+
+.markdown-body a:hover,
+.markdown-body a:focus,
+.markdown-body a:active {
+  text-decoration: underline;
+}
+
+.markdown-body hr {
+  height: 0;
+  margin: 15px 0;
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.markdown-body hr:before {
+  display: table;
+  content: "";
+}
+
+.markdown-body hr:after {
+  display: table;
+  clear: both;
+  content: "";
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  line-height: 1.1;
+}
+
+.markdown-body h1 {
+  font-size: 30px;
+}
+
+.markdown-body h2 {
+  font-size: 21px;
+}
+
+.markdown-body h3 {
+  font-size: 16px;
+}
+
+.markdown-body h4 {
+  font-size: 14px;
+}
+
+.markdown-body h5 {
+  font-size: 12px;
+}
+
+.markdown-body h6 {
+  font-size: 11px;
+}
+
+.markdown-body blockquote {
+  margin: 0;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  padding: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.markdown-body ol ol,
+.markdown-body ul ol {
+  list-style-type: lower-roman;
+}
+
+.markdown-body ul ul ol,
+.markdown-body ul ol ol,
+.markdown-body ol ul ol,
+.markdown-body ol ol ol {
+  list-style-type: lower-alpha;
+}
+
+.markdown-body dd {
+  margin-left: 0;
+}
+
+.markdown-body code {
+  font: 12px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+.markdown-body pre {
+  margin-top: 0;
+  margin-bottom: 0;
+  font: 12px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+.markdown-body kbd {
+  background-color: #e7e7e7;
+  background-image: -webkit-linear-gradient(#fefefe, #e7e7e7);
+  background-image: linear-gradient(#fefefe, #e7e7e7);
+  background-repeat: repeat-x;
+  border-radius: 2px;
+  border: 1px solid #cfcfcf;
+  color: #000;
+  padding: 3px 5px;
+  line-height: 10px;
+  font: 11px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  display: inline-block;
+}
+
+.markdown-body>*:first-child {
+  margin-top: 0 !important;
+}
+
+.markdown-body>*:last-child {
+  margin-bottom: 0 !important;
+}
+
+.markdown-body .anchor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  padding-right: 6px;
+  padding-left: 30px;
+  margin-left: -30px;
+}
+
+.markdown-body .anchor:focus {
+  outline: none;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  position: relative;
+  margin-top: 1em;
+  margin-bottom: 16px;
+  font-weight: bold;
+  line-height: 1.4;
+}
+
+.markdown-body h1 .octicon-link,
+.markdown-body h2 .octicon-link,
+.markdown-body h3 .octicon-link,
+.markdown-body h4 .octicon-link,
+.markdown-body h5 .octicon-link,
+.markdown-body h6 .octicon-link {
+  display: none;
+  color: #000;
+  vertical-align: middle;
+}
+
+.markdown-body h1:hover .anchor,
+.markdown-body h2:hover .anchor,
+.markdown-body h3:hover .anchor,
+.markdown-body h4:hover .anchor,
+.markdown-body h5:hover .anchor,
+.markdown-body h6:hover .anchor {
+  height: 1em;
+  padding-left: 8px;
+  margin-left: -30px;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.markdown-body h1:hover .anchor .octicon-link,
+.markdown-body h2:hover .anchor .octicon-link,
+.markdown-body h3:hover .anchor .octicon-link,
+.markdown-body h4:hover .anchor .octicon-link,
+.markdown-body h5:hover .anchor .octicon-link,
+.markdown-body h6:hover .anchor .octicon-link {
+  display: inline-block;
+}
+
+.markdown-body h1 {
+  padding-bottom: 0.3em;
+  font-size: 2.25em;
+  line-height: 1.2;
+  border-bottom: 1px solid #eee;
+}
+
+.markdown-body h2 {
+  padding-bottom: 0.3em;
+  font-size: 1.75em;
+  line-height: 1.225;
+  border-bottom: 1px solid #eee;
+}
+
+.markdown-body h3 {
+  font-size: 1.5em;
+  line-height: 1.43;
+}
+
+.markdown-body h4 {
+  font-size: 1.25em;
+}
+
+.markdown-body h5 {
+  font-size: 1em;
+}
+
+.markdown-body h6 {
+  font-size: 1em;
+  color: #777;
+}
+
+.markdown-body p,
+.markdown-body blockquote,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body dl,
+.markdown-body table,
+.markdown-body pre {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.markdown-body hr {
+  height: 4px;
+  padding: 0;
+  margin: 16px 0;
+  background-color: #e7e7e7;
+  border: 0 none;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 2em;
+}
+
+.markdown-body ul ul,
+.markdown-body ul ol,
+.markdown-body ol ol,
+.markdown-body ol ul {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.markdown-body li>p {
+  margin-top: 16px;
+}
+
+.markdown-body dl {
+  padding: 0;
+}
+
+.markdown-body dl dt {
+  padding: 0;
+  margin-top: 16px;
+  font-size: 1em;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.markdown-body dl dd {
+  padding: 0 16px;
+  margin-bottom: 16px;
+}
+
+.markdown-body blockquote {
+  padding: 0 15px;
+  color: #777;
+  border-left: 4px solid #ddd;
+}
+
+.markdown-body blockquote>:first-child {
+  margin-top: 0;
+}
+
+.markdown-body blockquote>:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body table {
+  display: block;
+  width: 100%;
+  overflow: auto;
+  word-break: normal;
+  word-break: keep-all;
+}
+
+.markdown-body table th {
+  font-weight: bold;
+}
+
+.markdown-body table th,
+.markdown-body table td {
+  padding: 6px 13px;
+  border: 1px solid #ddd;
+}
+
+.markdown-body table tr {
+  background-color: #fff;
+  border-top: 1px solid #ccc;
+}
+
+.markdown-body table tr:nth-child(2n) {
+  background-color: #f8f8f8;
+}
+
+.markdown-body img {
+  max-width: 100%;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.markdown-body code {
+  padding: 0;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+  margin: 0;
+  font-size: 85%;
+  background-color: rgba(0,0,0,0.04);
+  border-radius: 3px;
+}
+
+.markdown-body code:before,
+.markdown-body code:after {
+  letter-spacing: -0.2em;
+  content: "\00a0";
+}
+
+.markdown-body pre>code {
+  padding: 0;
+  margin: 0;
+  font-size: 100%;
+  word-break: normal;
+  white-space: pre;
+  background: transparent;
+  border: 0;
+}
+
+.markdown-body .highlight {
+  margin-bottom: 16px;
+}
+
+.markdown-body .highlight pre,
+.markdown-body pre {
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: #f7f7f7;
+  border-radius: 3px;
+}
+
+.markdown-body .highlight pre {
+  margin-bottom: 0;
+  word-break: normal;
+}
+
+.markdown-body pre {
+  word-wrap: normal;
+}
+
+.markdown-body pre code {
+  display: inline;
+  max-width: initial;
+  padding: 0;
+  margin: 0;
+  overflow: initial;
+  line-height: inherit;
+  word-wrap: normal;
+  background-color: transparent;
+  border: 0;
+}
+
+.markdown-body pre code:before,
+.markdown-body pre code:after {
+  content: normal;
+}
+
+.markdown-body .highlight {
+  background: #fff;
+}
+
+.markdown-body .octicon {
+  font: normal normal 16px octicons-anchor;
+  line-height: 1;
+  display: inline-block;
+  text-decoration: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.markdown-body .octicon-link:before {
+  content: '\f05c';
+}
+
+.markdown-body .task-list-item {
+  list-style-type: none;
+}
+
+.markdown-body .task-list-item+.task-list-item {
+  margin-top: 3px;
+}
+
+.markdown-body .task-list-item input {
+  float: left;
+  margin: 0.3em 0 0.25em -1.6em;
+  vertical-align: middle;
+}
+
+  </style>
+</head>
+<body><div class="markdown-body">
+<h1 id="guide-to-webserver-ssl-certificates">Guide to Webserver SSL Certificates</h1>
+<p>Welcome. The purpose of this guide is to clearly explain the reasons you may want to use a Secure Socket Layer (SSL) certificate on your webserver. While researching SSL certificates for use on our site we were constantly bombarded by useless marketing nonsense. What we really needed was a single page with clear and concise facts. This guide is here to provide an understanding of the basics involved in deciding what type, encryption strength and seller of SSL certificates you have access to. At the end of the page are some security recommendations and known vulnerabilities of SSL implementations.</p>
+<h2 id="why-would-one-buy-a-ssl-certificate-">Why would one buy a SSL certificate ?</h2>
+<p>The primary reason for using a SSL certificate is to encrypt traffic between your webserver and the client with a &quot;trusted&quot; key verified by an independent third party. All communication between the server and the client will be encrypted to protect data integrity. The SSL certificate, when purchased from a &quot;WebTrust Compliant&quot; Certificate Authority, can be independently verified by the client through the CA&#39;s servers. Third party validation is the core purpose of a Certificate Authority. It allows the client to have a certain amount of initial trust with a server&#39;s domain name. Understand that the certificate does not actually encrypt the data at all, it is only so that a client can ask a third party if your domain is &quot;trusted.&quot;</p>
+<p>If you decide to sign your own ssl certificate and not use an independent Certificate Authority then clients will get an error every time they connect to your site. The error will explain that the SSL certificate can not be verified and the site may not be trusted. Even worse, newer versions of Firefox and Opera will now bring up a warning page and not let the user continue unless they choose to.</p>
+<h2 id="what-you-can-and-can-not-expect-from-a-https-ssl-certificate-">What you can and can not expect from a https SSL certificate ?</h2>
+<p>A certificate bought from a trusted Certificate Authority simply means a client can verify the certificate&#39;s validity through a third party. This does not mean the web page data is securely encrypted, does not mean the data on the site is valid and does not mean that the data can not be compromised on the client or server machines.</p>
+<p>A SSL certificate simply says that the person or persons who bought the certificate is the same person or persons that own the domain. This is the simplest check done by the Certificate Authority when a certificate request (purchase) is made. The more expensive certs require that the company ordering the certificate verify their legal credentials. This may mean they have to FAX proof of their physical location, their business status (INC, CO, etc.) and contact information to the Certificate Authority and comply with an investigation. This extended verification process is expensive and can take weeks to complete.</p>
+<h2 id="why-purchase-a-ssl-certificate-from-an-authorized-certificate-authority-">Why purchase a SSL Certificate from an authorized Certificate Authority ?</h2>
+<p>A Certificate Authority (CA) is the third party the remote client browser will use to verify your SSL certificate against. An example of a CA is a company like Verisign, GeoTrust or Comodo.</p>
+<p>When connecting, the client will negotiate (handshake stage) with your web server and your server will send the public SSL key to the client. The client will then connect independently to the CA to verify the certificate&#39;s authenticity. Once verified the client will negotiate with your web server to establish a secure connection using SSL encryption. Only then will the client display the &quot;lock&quot; symbol in the browser&#39;s URL bar indicating a secure connection has been made.</p>
+<p>When purchasing a certificate it is vitally important to make sure that the company you are purchasing from is &quot;WebTrust Compliant&quot; and their servers are listed in the Verification Module for every web browser.</p>
+<h3 id="what-is-involved-in-being-webtrust-compliant-">What is involved in being &quot;WebTrust Compliant&quot; ?</h3>
+<p>The WebTrust Program is an international e-commerce trust program developed and managed jointly by the American Institute of Certified Public Accountants and the Canadian Institute of Chartered Accountants. You should question any and all SSL certificate providers who do not display the WebTrust seal. Most of the primary certificate providers own their own root certificate. You should verify that the CA your are going to use has their own servers for speed purposes. Every client who connects to your servers will connect to your CA&#39;s servers.</p>
+<p>WebTrust is an independent auditing process run under AICPA (American Institute of Certified Public Accountants) guidelines designed to address customer concerns about privacy, security, and business practices and signifies that the certificate authority meets independent standards for the issuing and managing digital certificates.</p>
+<p>WebTrust is a comprehensive, thorough review by qualified independent specialists which meets or exceeds the US industry consensus standards for privacy established by the Online Privacy Alliance. The program also substantively meets the standards for the European Union and Canada. WebTrust includes both privacy and security but also includes confidentiality, transaction integrity, business practice disclosures.</p>
+<p>In order to maintain compliance the CA is required to undergo a program of continuous scrutiny with formal reviews at least once every 6 (six) months. WebTrust compliance is publicly signified by the internationally recognized WebTrust seal of assurance which is displayed on our web sites.</p>
+<h3 id="should-we-buy-an-expensive-ssl-certificate-from-a-well-known-certificate-authority-">Should we buy an expensive SSL Certificate from a well known Certificate Authority ?</h3>
+<p>No, you do not have to. The more expensive certs (EV) cost upwards of $200 a year. You can find standard (turbo) certs for as little as $15 a year or even for free at CAcert.org. But, it really depends if you are purchasing a SSL cert and encrypting the data because of your business plan or if you just want encryption for a personal site. If you own a business then the purpose of encryption is for financial safety and public confidence proposes. For this reason you will probably want to go with a more recognizable and expensive certificate authority like Verisign or GeoTrust.</p>
+<p>If you are simply using a SSL certificates for a personal site or small business then your only concern is whether client browsers (Firefox, IE, Opera) have the root certificate server in their <code class="inline">Builtin Roots Module</code> list. For example, to view all of the BuiltIn Certificate Authorities in Firefox v3.x goto <code class="inline">Edit</code>, <code class="inline">Preferences</code>, <code class="inline">Advanced</code>, <code class="inline">Encryption</code>, <code class="inline">View Certificates</code> and <code class="inline">Authorities</code>. This will show all of the pre-verified CA&#39;s by company name that the FireFox developers built into the browser. Our site, Calomel.org uses a cert from &quot;The Go Daddy Group, Inc.&quot;. When you connected to this site&#39;s server your browser also connected to the Comodo servers to verify our SSL identity.</p>
+<p>Only buy a certificate from the CA members listed in the browsers <code class="inline">Builtin Roots Module</code>. If you do not, then client browsers will display an error every time they connect to your site due to the fact the browser can not verify the CA&#39;s server identity.</p>
+<h3 id="what-about-ancient-browsers-">What about ancient browsers ?</h3>
+<p>This also brings up a question involving very old browsers. Newer Certificate Authorities may not be listed in the <code class="inline">Builtin Roots Module</code> of older browsers. Thus if a client is using IE4 and connects to your site they may get a SSL warning because a new CA, like GoDaddy for example, is not known by their old browser. There is really nothing that can be done on your server about this other than purchasing your SSL cert from a very well established CA like Verisign or Geotrust. They were around during the beginning and the Verisign root servers can even be found in browsers as old at IE4 and Firefox v1.0. It just depends on your interest in supporting ancient clients. At Calomel.org we have made the decision not to support old browsers due to their inherent security flaws. This not only simplifies our setup, but most importantly protects users by suggesting that they update their browsers to help themselves.</p>
+<p>Remember, the yearly costs the certificate authority charges has absolutely nothing to do with the encryption of your data. You can find perfectly valid ssl certificates for as little as $1.99 a year from Comodo through namecheap.com for example. The money you pay only allows a remote client to verify that your SSL certificate has been verified by a third party. The amount of background checks depend on the CA, but it normally means that the owner of the domain is the same owner of the SSL certificate. More thorough checks for the Extended Validation (EV) SSL Certificates also verify that a company is in good standing, is incorporated and verifies the company&#39;s physical location including legal contacts.</p>
+<h3 id="are-extended-validation-certificates-ev-that-much-safer-">Are Extended Validation Certificates (EV) that much safer ?</h3>
+<p>Sadly, No. There has been some concerns lately that EV certificates, despite their improved authentication, company background checks and significantly higher cost, will not prevent phishing attacks. EV certificates really do mean no more encrypted security than the domain validated certs. Any criminal element can send in the paperwork and pay a few hundred dollars a month for a &quot;green bar&quot; ssl cert. But don&#39;t the users notice that green bar ?</p>
+<p>In 2006, researchers at Stanford University and Microsoft conducted a usability study of the EV &quot;green URL&quot; display in Internet Explorer 7. The study measured the user&#39;s ability to distinguish real sites from fraudulent sites when presented with various kinds of phishing attacks. They found that there was <em>NO</em> significant difference between users who saw extended validation indicators and those who did not.</p>
+<p>Even worse, when users then received training with the Internet Explorer 7 help file they were more likely to judge <em>ALL</em> sites legitimate, regardless of whether they were fraudulent or not.</p>
+<p>It&#39;s more likely that users who actually noticed the green URL will learn that the marker isn&#39;t reliable and start to ignore it. Most users do not even pay attention to browser warnings; clicking on the <code class="inline">OK</code> or <code class="inline">Next</code> buttons blindly.</p>
+<h2 id="what-type-of-encryption-should-be-used-">What type of encryption should be used ?</h2>
+<h3 id="brief-history-of-3des-and-aes">Brief History of 3DES and AES</h3>
+<p>Single pass DES was first developed in 1977. DES performs bit manipulation in substitution and permutation boxes in each of 16 rounds. DES encrypts data in 64 bit block sizes which effectively use a 56 bit key. 56 bit key space amounts to approximately 72 quadrillion possibilities. Even though this seems like a lot of permutations, today&#39;s computers are powerful and cheap enough to break this cipher in minutes.</p>
+<p>Because DES was widely available, the quick solution at the time was to introduce 3DES which was &quot;secure enough&quot; for most purposes. 3DES is the simple construction of applying DES three times in sequence using three different keys (K1, K2 and K3) and has an effective key length of 168 bits. <a href="http://en.wikipedia.org/wiki/Triple_DES">Wikipedia on DES</a> has more examples.</p>
+<p>Ten year ago a modified version of the Rijndael algorithm was selected as the Advance Encryption Standard (AES) to replace 3DES. Rijndaels combination of security, performance, efficiency, implementability, and flexibility made it an appropriate selection for the Advanced Encryption Standard (AES).</p>
+<p>By design, DES and therefore 3DES/TDES, suffer from slow performance in software even on modern processors, AES tends to be around six times faster. By design AES is faster through software and efficient in hardware. It works fast even on small devices such as smart phones, smart cards etc. AES provides more security than 3DES due to the larger block sizes and longer keys. AES uses 128 bit fixed block size and works with 128, 192 and 256 bit keys. <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia on AES</a> have examples and logic charts.</p>
+<p>According to NIST, AES is the replacement for 3DES and both ciphers will coexist until the year 2030 allowing for gradual transition to AES. Even though AES has the theoretical advantage over 3DES for speed and efficiency in some hardware implementations of 3DES may be faster where support for 3DES is mature.</p>
+<h3 id="using-aes-for-the-ssl-key-and-allowing-both-aes-and-3des-for-the-handshake">Using AES for the SSL key and allowing both AES and 3DES for the handshake</h3>
+<p>AES is the stronger encryption type and we want to use this to make our SSL certificate. But, you may need to allow 3DES as well as AES handshakes so older browsers like Internet Explorer 6 and BOTS like MSNbot can connect.</p>
+<h4 id="how-to-request-a-ssl-certificate-from-a-certificate-authority-ca-">How to request a SSL certificate from a Certificate Authority (CA)</h4>
+<p>When you choose a certificate authority and go through the purchase process they will eventually ask for a <strong>Certificate Signing Request (CSR)</strong>. This is a public SSL key you will provide to them, they will sign it and send a copy back you for use on your server.</p>
+<p>To make a CSR key for on Linux or BSD for Apache, Lighttpd or Nginx use the OpenSSL binary. The following will make a 256 bit AES key using a 4096 bit key length (RSA / 4096 bits). A 4096 bit key is <a href="http://en.wikipedia.org/wiki/FIPS_140-2">FIPS 140-2</a> mandated. This is the strongest key with the strongest encryption supported by 99% of the browsers and search BOTs. When the private key is made it will ask for a pass phrase. Enter any string, sentence or phase you want that is greater than 8 characters (longer the better and spaces are accepted). The pass phrase will be like a password and you will need to type it in to start any web server using the SSL key. You do have the option of just hitting enter and not entering a passphrase, but this is not considered good security.</p>
+<pre class="hljs"><code>root@mach$  openssl genrsa -aes256 4096 &gt; server.key
+
+Generating RSA private key, 4096 bit long modulus
+................++++++
+... many lines print out as the key is generated ...
+................++++++
+e is 65537 (0x10001)
+Enter pass phrase:
+Verifying - Enter pass phrase:
+</code></pre><p>Now that the private key is made we need to make a public CSR key. This is the key we will supply to the certificate authority for their verification and signature. When you make the CSR key you will have a few questions to answer. It is a good idea to fill out this information truthfully because the Certificate Authority will verify it against their findings. If the information does not match they may deny your request. It depends on your CA, but the majority of the time the information entered in this CSR file will not be made public.</p>
+<p>The following scrollable window has an example of the questions you will be asked. The <code class="inline">Organizational Unit Name</code>, <code class="inline">Email Address</code>, <code class="inline">challenge password</code> and <code class="inline">optional company name</code> are not absolutely necessary and can be left out if you choose.</p>
+<p>The most important question is the <code class="inline">Common Name</code> and it MUST equal your domain name your webserver runs as. When remote clients connect to your domain name, lets say <code class="inline">www.mydomain.com</code>, they will make sure the domain they connect to equals the <code class="inline">Common Name</code> in the CSR key. If the two do not match the client will produce an error to the user.</p>
+<div class="highlight hljs lang-text"><pre>root@mach$  openssl req -sha256 -new -key server.key -out server.csr
+
+Enter pass phrase for server.key:
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter &#39;.&#39;, the field will be left blank.
+-----
+Country Name (2 letter code) []:Country
+State or Province Name (full name) []:State
+Locality Name (eg, city) []:City
+Organization Name (eg, company) []:Company
+Organizational Unit Name (eg, section) []:
+Common Name (eg, fully qualified host name) []:www.mydomain.com
+Email Address []:
+
+Please enter the following &#39;extra&#39; attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+</pre></div>
+<p>If you look in your current directory you should see both the <code class="inline">server.key</code> and <code class="inline">server.csr</code>. Now we need to send the <code class="inline">server.csr</code> to the Certificate Authority. Every company is different, but most will allow you to copy/paste the contents of the <code class="inline">server.csr</code> into a web page application box. The output of your CSR key should look something like the following format but yours will be longer. This is just an shortened example:</p>
+<div class="highlight hljs lang-text"><pre>-----BEGIN CERTIFICATE REQUEST-----
+MIIBkTCB+wIBADBSMQswCQYDVQQGEwJVUzELMAkGA1UECBMCTUQxDTALBgNVBAcT
+BENpdHkxEDAOBgNVBAoTB0NvbXBhbnkxFTATBgNVBAMTDG15ZG9tYWluLmNvbTCB
+nzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAyMUWNj9T4fyPhls573vU7/RO5e2O
+ZZpDuBqXqicUNUxYJWPkjkEhM28z+rSZJt0KuvuNdfMPAcaZSHH/IVWfd36CIwOz
+dbdG8dQja1lhQN91mceTCtXCi9MkojpKmNeo8jFnoqEMEV3KL3/6upFfLQWQsF5I
+bLDUrPfrrKRlvHUCAwEAAaAAMA0GCSqGSIb3DQEBBAUAA4GBAGXeAT/niVJfgxFH
+7zC10k6hCaiGlOlFCTONaKAN71P4qg4fJ7VxAAFaob1shOxV6vPjd9Q85rPV5qxU
+orQ+ytxYdO8YbAwTBEMAGQcQM1+lSyeXZNyBnTigkqtaXNDkZRZETgQFuXa19ykn
+nUx+yXPT6gMoK/2MuH4RIir44DIM
+-----END CERTIFICATE REQUEST-----
+</pre></div>
+<p>Once you submit your CSR public key to the CA company they should send you two files; probably by email or downloadable through the CA&#39;s website. These two files will be your domain&#39;s <code class="inline">crt</code> file and a bundled <code class="inline">crt</code> file from the certificate authority. Your domain&#39;s crt file will be the certificate signed for just your domain name. The bundled crt file will be for all of the CA&#39;s verification certificate servers.</p>
+<p>At this point the generation of the certificates are done. Make sure you back them up, do not loose them and do not let anyone else have them. You now need to decide which web server you are going to use and how to configure SSL to work with that server. Take a look at our home page for links to setting up many of the most popular web servers like Nginx.</p>
+<h2 id="the-following-topics-cover-the-technical-details-of-ssl">The following topics cover the technical details of SSL</h2>
+<h3 id="understanding-the-ssl-handshake-process">Understanding the SSL handshake process</h3>
+<p>When a client connects to the server there is an encrypted handshake. During this time both systems use an initial cipher to securely negotiate the later use of your SSL certificate. You should make sure to use the most compatible, as well as the strongest ciphers available to your server for the majority of the clients that will connect. AES is the best cipher, but older clients like IE6 and BOTs like MSN do not understand this cipher handshake yet. So, to allow 99% compatibility of the clients to be able to connect to your server make sure to use 3DES and AES handshake ciphers. Most web servers know this as the <code class="inline">HIGH</code> cipher level.</p>
+<h3 id="how-the-ssl-handshake-works">How the SSL handshake works</h3>
+<p>The handshake is the key process for a client and server to exchange authentication and encryption information under SSL or TLS. Essentially, SSL consists of two phases corresponding to two sub-protocols. The <code class="inline">SSL Handshake</code> Protocol governs the first phase to establish secure communication. Subsequently, all messages are encrypted and exchanged using the <code class="inline">SSL Record</code> Protocol.</p>
+<ul>
+<li>Establish the identity of the server by connecting to the domain.</li>
+<li>Develop a shared encryption key that can be used to exchange messages, called the session key. Remember that MSNBot only understand 3DES handshakes at this time. Googlebot and Yahoo do AES handshakes without issue.<ul>
+<li>Client: Hello, here is a list of encryption algorithms I know.</li>
+<li>Server: Hello, here is the algorithm I chose from your list. Also, here is my certificate and public key. If the server does not accept any of the clients algorithms (perhaps they are too weak) then the server will send an error 400 and close the connection.</li>
+<li>Client examines the certificate and makes sure it is signed by a known certificate authority (CA).</li>
+<li>Client: OK, here is the pre-master secret encrypted with your public key.</li>
+<li>Now both client and server can use the pre-master secret to compute the session key: the encryption key for subsequent messages. Normally the server and client keep using this session key until traffic stops. At this point the key will time out in 300 seconds (5 minutes). Any traffic requested after the timeout will automatically renegotiate another session key.</li>
+<li>Client: [encrypted] I&#39;m finished with the handshake.</li>
+<li>Server: Got it. Expect an encrypted reply.</li>
+<li>Server: [encrypted] I&#39;m finished with the handshake.</li>
+<li>All subsequent messages are encrypted with the server&#39;s SSL encrypted key.</li>
+</ul>
+</li>
+</ul>
+<h3 id="the-handshake-list-ciphers-of-protocol-version-sslv3-and-keys-of-128-bit-or-higher-high-adh-md5-">The handshake: List ciphers of protocol version SSLv3 and keys of 128 bit or higher (HIGH:!ADH:!MD5).</h3>
+<p>To find out what ciphers your machine will support you can query OpenSSL using the ciphers argument. We highly suggest using SSL version 3 as version 2 has vulnerabilities. Finally you can ask for all ciphers that use the HIGH cipher strength meaning ciphers of 128 bits or higher, but without anonymous DH or MD5.</p>
+<pre class="hljs"><code>root@mach$   openssl ciphers -ssl3 -v &#39;HIGH:!ADH:!MD5:@STRENGTH&#39;
+DHE-RSA-AES256-SHA      SSLv3 Kx=DH       Au=RSA  Enc=AES(256)  Mac=SHA1
+DHE-DSS-AES256-SHA      SSLv3 Kx=DH       Au=DSS  Enc=AES(256)  Mac=SHA1
+AES256-SHA              SSLv3 Kx=RSA      Au=RSA  Enc=AES(256)  Mac=SHA1
+EDH-RSA-DES-CBC3-SHA    SSLv3 Kx=DH       Au=RSA  Enc=3DES(168) Mac=SHA1
+EDH-DSS-DES-CBC3-SHA    SSLv3 Kx=DH       Au=DSS  Enc=3DES(168) Mac=SHA1
+DES-CBC3-SHA            SSLv3 Kx=RSA      Au=RSA  Enc=3DES(168) Mac=SHA1
+DHE-RSA-AES128-SHA      SSLv3 Kx=DH       Au=RSA  Enc=AES(128)  Mac=SHA1
+DHE-DSS-AES128-SHA      SSLv3 Kx=DH       Au=DSS  Enc=AES(128)  Mac=SHA1
+AES128-SHA              SSLv3 Kx=RSA      Au=RSA  Enc=AES(128)  Mac=SHA1
+</code></pre><p>Each column in the <code class="inline">openssl ciphers</code> command mean:</p>
+<ul>
+<li>Official encryption name</li>
+<li>SSLv3 is the secure socket type (TLSv1 uses the same SST&#39;s)</li>
+<li>Kx= key exchange (DH is diffie-hellman)</li>
+<li>Au= authentication</li>
+<li>Enc= encryption with bit size</li>
+<li>Mac= mac encryption algorithm</li>
+</ul>
+<p>The <code class="inline">@STRENGTH</code> string is used to sort the current cipher list in order of encryption algorithm key length (256, 168, 128) from longest at the top to shortest at the bottom. In truth, AES 256 is stronger than AES 128bit which is significantly more secure than 3DES 168bit.</p>
+<h3 id="the-default-ssl-ciphers-on-apache-lighttpd-nginx-are-weak">The default SSL ciphers on Apache, Lighttpd, Nginx are weak</h3>
+<p>Make sure to specify the ssl ciphers your webserver is going to use in its configuration to at least the <code class="inline">HIGH:!ADH</code> level. iThis means AES and DES keys over 128 bit, but <em>not</em> anonymous DH keys. Most web servers try to be as compatible as possible by default and accept 40, 56 and 80 bit DES keys. These are incredibly weak and are labeled as acceptable according to US Export control laws. We highly recommend denying weak ciphers by only accepting 3DES/TDES and AES ssl cipher handshakes of at least 128 bits and above. Once GoogleBot and MSNbot start accepting PFS AES handshakes then we can finally limit our ssl ciphers to <code class="inline">AES</code> only. According to NIST, 3DES is supposed to phased out by 2030.</p>
+<h2 id="what-does-ssl-encrypt-">What does SSL encrypt ?</h2>
+<p>The path and query string is encrypted in an HTTPS <code class="inline">get</code> request (this is where form field responses or program variables are tagged on to the end of the URL). These fields are stripped off of the URL when creating the routing information in the HTTPS packaging process by the browser and are included in the encrypted data block. The page data (form, text, and query string) are passed in the encrypted block after the encryption methods are determined and the handshake completes.</p>
+<p>A related issue that frequently comes up is whether or not form data is transmitted with encryption if a blank form is displayed without HTTPS. If the form <code class="inline">action</code> is set to use HTTPS then the ssl handshake will take place before the data is sent. Whether or not the original form is displayed using HTTPS has little to do with the form submission unless the form action uses a relative path, in which case the default will be to use the protocol that was used to display the form. This applies to both the request and the response.</p>
+<h2 id="ssl-performance-considerations">SSL performance considerations</h2>
+<p><strong>Server Bandwidth</strong> considerations are not an issue for most small or medium sized businesses. SSL transactions will increase by about 1 kilobyte per client action and about 5 kilobytes the first time a client negotiates the SSL connection with the server.</p>
+<p><strong>Server Processor</strong> usage is increased with SSL connections but this should only be a concern on servers running hundreds of transactions per minute. A small business with 50 transactions per minute using AES256 encryption can easily run on a 2GHz server with a load average of .20 .</p>
+<p><strong>Server RAM</strong> usage is not seriously affected as SSL encryption. The only ram that is used is to save the client/server negotiated session information for a default 300 seconds. Unless you have hundreds of connections per minute a machine with 2 gig of ram should work fine.</p>
+<p>Setting the <strong>Expire and Cache headers</strong> on the webserver for SSL encrypted pages will allow a client to cache the pages in RAM only. For security reasons, pages that are sent encrypted to a client browser will NOT be cached on disk. This is a security/privacy directive set on the client&#39;s browser and can not be changed by a web server. You may notice if you look at the <code class="inline">page info</code> through a browser that the <code class="inline">Expires</code> field is blank. This is simply because the client will not save a copy of the page to disk. A copy of the page will stay in the clients RAM until it expires, is cleared out for space considerations or when he browser is closed; which ever comes first. If you would like to check the headers on the command line you can use the binary <code class="inline">curl -I --compressed https://localhost</code>.</p>
+<h2 id="will-bots-like-googlebot-msnbot-and-yahoo-slurp-index-ssl-encrypted-pages-">Will bots like GoogleBot, MSNbot and Yahoo Slurp index SSL encrypted pages ?</h2>
+<p>Yes. The most popular bots will index SSL encrypted pages if they are allowed to in your robots.txt file. For example, type in <code class="inline">site:calomel.org</code> into a Google search and you will see they already know about our HTTPS pages.</p>
+<p>What you have to remember is that all the bots will read AES encrypted pages encrypted using the AES256 bit SSL key, but Google and MSN will <em>NOT</em> negotiate using an AES handshake. It is important to make sure that your web server allows both AES so GoggleBot, MSN bot and IE6 can connect. This is accomplished by allowing <code class="inline">HIGH:!ADH</code> grade ssl ciphers through your web server.</p>
+<p><strong>If I use SSL on my pages, will we be PageRank&#39;d higher then non-ssl pages?</strong> So far, there is NO conclusive proof that a SSL site will get higher Google/MSN/Yahoo search rank listing compared to the same site which is unencrypted. In fact there seems to be no positive or negative result if you have your pages encrypted or not. This is because the quality of the data on the site is not validated by SSL, only that the certificate is independently verified. The most important factor in Google&#39;s PageRank for example is the amount of high quality sites linking back to your site. The idea being that if a site like Digg or CNN link to your site then your page rank will increase because their page rank is high. This is completely independent of whether your page is encrypted or not.</p>
+<h2 id="can-i-use-google-adsense-analytics-or-other-non-encrypted-data-on-my-ssl-pages-">Can I use Google Adsense, Analytics or other non-encrypted data on my SSL pages ?</h2>
+<p>No. All data on a SSL encrypted page MUST be encrypted. The data can come from multiple servers and multiple SSL certificates, but all data MUST be encrypted.</p>
+<p>If we SSL encrypt our pages then receiving clients expect ALL data loaded from that page to be encrypted for security. If there is any data in the clear text, like ads or Java script loaded from an ad server, then the client browser will warn the user that &quot;some data was sent un-encrypted&quot;. The browser&#39;s URL bar will not turn yellow(ssl) or green(EV ssl) and the little lock symbol will have a diagonal line through it meaning the page was NOT fully encrypted. Now, the remote user is not sure if the transmission of their data is safe and thus does not trust your site. This completely defeats the purpose of having a SSL certificate and page encryption.</p>
+<p>If you expect to serve ads, Google analytics or any Java script on your page that loads in the clear from a third party then do not make those pages encrypted.</p>
+<h2 id="what-about-browser-support-for-the-online-certificate-status-protocol-ocsp-">What about browser support for the Online Certificate Status Protocol (OCSP) ?</h2>
+<p>The Online Certificate Status Protocol (OCSP) is used for obtaining the revocation status of an X.509 digital certificate. In most browsers you can enable OCSP to check with a third party server if the SSL certificate your are negotiating with is still valid.</p>
+<p>Internet Explorer starting with version 7 on Windows Vista (not XP) supports OCSP checking. All versions of Firefox support OCSP checking, but it is disabled by default. Firefox 3 will enable OCSP checking by default. Safari on Mac OS X supports OCSP checking. Later versions (after 2008) of Opera support OCSP checking.</p>
+<p>We suggest enabling OCSP in your browser. It is not a solution to phishing attacks, but simply another layer of verification.</p>
+<p>Note, the criteria for issuing Extended Validation (EV) certificates do not require Certificate Authorities to immediately support Online Certificate Status Protocol for revocation checking. The requirement for a timely response to revocation checks by the browser has prompted most Certificate Authorities to implement OCSP support. Section 26-A of the issuing criteria requires CAs to support OCSP checking for all certificates.</p>
+<h2 id="test-your-ssl-webserver-configuration">Test your SSL webserver configuration</h2>
+<p>Once you are finished setting up your webserver it is a good idea to find out if it is working correctly. We highly suggest using <a href="https://www.ssllabs.com/ssldb/index.html">Qualys SSL Labs</a> to test your site. The site is completely free of charge and data collected is going into a study of millions of SSL based web servers all over the world. They will run a series of OpenSSL tests and generate a report for you. Then you can look at the results and compare your setup to what SSL Labs considers a secure setup. Then you can see where you rank against other websites. Currently, our site ranks an &quot;A&quot; at 93% for example.</p>
+<h2 id="known-attacks-on-ssl-tls-to-be-aware-of">Known attacks on SSL/TLS to be aware of</h2>
+<p>Although SSL/TLS protocols offer a high level of security in theory, its actual implementations may be vulnerable to several types of attacks. Of the many attack vectors, these are worthy of special attention:</p>
+<p><strong>Man in the middle (MITM) attacks .:.</strong> In this type of attack, an intruder intercepts the traffic that is being sent between a client and server, such as by forging DNS replies or by performing ARP redirection. Then, it impersonates the client to the server, and vice-versa. During this attack, the user&#39;s web browser does not connect directly to the destination server, but instead to the intruder host, which impersonate the web browser and essentially acts as a proxy.</p>
+<p>There is good and bad news for an administrator who wishes to defend against such attacks. The good news is that the web browsers warn users when the web server&#39;s identity cannot be verified, which may indicate possible man-in-the-middle attack, by displaying a message window with a warning. The bad news is that in real life, users very often ignore such warnings. Hence, if the user&#39;s web browser accepts connections to SSL web sites that identities cannot be checked, we can only rely on users&#39; education and trust that they will not press the <code class="inline">proceed</code> button, if such warning message has been displayed.</p>
+<p><strong>Brute-force attack on the session key .:.</strong> This attacks can be performed when the intruder knows or can assume part of the clear text that was sent during SSL/TLS session, such as (such as <code class="inline">GET / HTTP/1.0</code>), and the intruder can eavesdrop this session (such by using tcpdump, Ethereal or other tools). Then, intruder can encrypt the assumed part of the text by using every possible key, trying to find its occurrence in the originally encrypted SSL/TLS traffic. Once such an occurrence has been found, the key that was used to encrypt this part of the message can be used to decrypt the rest of originally encrypted SSL/TLS traffic.</p>
+<p>The good news is that maximum number of keys that must be checked is 2^128 when 128-bit symmetric cryptography has been used. Today this is believed to be strong enough to protect the session for literally dozens of years. However, since CPUs grow in strength every year, we cannot really predict for how long 128-bit symmetric keys will be considered to be secure, particularly for hackers with access to large supercomputers.</p>
+<p>In case of export-class cipher suites (40-bit, and in some extended 56-bit ciphers) such brute force attacks can be successfully performed in a reasonable amount of time -- sometimes even in few days, depending on the available number of CPUs. If export regulations in your country allow for the use of strong cryptography, one should definitely use it instead of export-class cipher suites.</p>
+<p>In addition to the two types of attacks listed above, there are some other potential vulnerabilities, including algorithm rollback attacks, timing attacks, traffic analysis, Bleinchenbacher&#39;s attacks, and others. Those interested in understanding them can find more information in Bruce Schneier and David Wagner&#39;s document, <code class="inline">Analysis of the SSL 3.0 protocol,</code> (PDF document) as well as in many other documents that can be found on the public Internet. Typical SSL/TLS implementation mistakes</p>
+<p><strong>Certificates signed by a CA that is not known to the web browser .:.</strong> The biggest mistake that can be made when implementing SSL/TLS is with the signing of the web server&#39;s certificate by a CA that is not trusted by web browsers. For example, CAcert.org is not listed in any Mozilla based browser. The CA&#39;s certificate is not installed in the web browser and this makes Man-In-The-Middle attacks very easy to perform, because users have no way of verifying the identity of the web server.</p>
+<p>To avoid this problem, it is important to make sure that signer&#39;s certificate (usually, a trusted CA) is installed in user&#39;s web browser. If a local CA was used for signing the web server&#39;s certificate, then we must make sure that all web browsers on all clients requiring access have the local CA&#39;s certificate installed. The same rule applies to self-signed certificates.</p>
+<p><strong>Expired certificates .:.</strong> The web browser&#39;s certificate should be renewed before the previous one expires. Otherwise it will result in the same problem as above, whereby web clients will not be able to authenticate with the web server -- which once again makes SSL/TLS connections vulnerable to man in the middle attacks. In this case, users may get used to seeing a warning message saying the certificate has expired, and then will probably not notice if it is a bogus certificate.</p>
+<p><strong>Vulnerable versions of OpenSSL and Apache .:.</strong> It is very important to always run the latest versions of OpenSSL and Apache. Programmers writing larger pieces of code such as these without bugs is virtually impossible, so we should always use the latest stable versions of the above software. The latest versions should theoretically contain fewer security vulnerabilities (both discovered and not-yet discovered) than previous versions.</p>
+<p><strong>Acceptance of SSL v2.0, anonymous authentication (aNULL), and cryptography (NULL) by the web server .:.</strong> As was previously discussed, the use of cipher suites that support anonymous authentication or require no encryption should be disabled. Otherwise, there is a risk that client can be tricked into negotiating parameters that can dramatically lower the security level of the connection. For this reason we should disable the use of the SSLv2.0 protocol and use TLSv1.0 or SSLv3.0 instead.</p>
+<p><strong>Use of weak encryption .:.</strong> Early implementations of SSL were only able to use 40-bit keys for symmetric encryption, due to US government restrictions. Unfortunately, the data encrypted by 40-bits symmetric keys can now be decrypted in a relatively short period of time, and for this reason 40-bit and 56-bit keys should no longer be used. Most modern web browsers support 128-bit keys for symmetric encryption, and this is now the minimal recommended length of key for use with SSL/TLS.</p>
+<p><strong>Improper use of a Network Intruder Detection System (NIDS) .:.</strong> It is important to stress that unless a NIDS is capable of decrypting the SSL traffic (such as through the use of the web server&#39;s private key) it is simply unable to detect attacks on the web application. To detect eventual break-ins, we must either use either a HIDS (Host-based Intruder Detection System), or put the NIDS in a segment where SSL/TLS traffic is being sent in clear text, such as between a SSL Reverse Proxy and the web server&#39;s farm. Otherwise we may not be able to detect any attacks, except denial of service, performed against the web server.</p>
+<p><strong>Allowing access not only via SSL, but also via non-encrypted protocols (HTTP) .:.</strong> Setting up SSL/TLS and opening port 443/tcp to the web server, by itself, means nothing if users can still access website via non-encrypted HTTP on port 80/tcp. Thus, one must double-check that the protected content cannot be accessed via non-encrypted HTTP or other protocols (including FTP, Samba, NFS, and so on). It is also important to remember hat is a search BOT like GoogleBot can see the same page in both HTTP and HTTPS then Google might remove the page completely from its index. Only allow a page to be viewed from EITHER HTTPS OR HTTP, never both.</p>
+<p><strong>Vulnerable client machines .:.</strong> When we focus on securing web servers, we can easily forget about the security of the client machines. If they are compromised, the security of SSL/TLS is compromised as well. In that case, intruders could do as they like with client hosts, such as replace certificates in web browsers, install keyloggers, change /etc/hosts to redirect web requests to bogus web servers, or even steal client certificates if they they have been marked as &quot;exportable.&quot;</p>
+<p>Therefore, if the client machines are under our administrative domain, we need to take great care with their security. Enabling a personal firewall, antivirus/antispyware software, and turning on automatic Windows updates should be the absolute minimum. Most importantly, web browser versions should be always up-to-date.</p>
+<p>It is also recommended that one apply the following options (related to SSL/TLS) to the web browser configuration:</p>
+<ul>
+<li>checking for a publisher&#39;s certificate revocation should be enabled</li>
+<li>checking for any server certificate revocation should be enabled</li>
+<li>encrypted server pages should not be stored in the cache</li>
+<li>the use of SSLv2.0 should be disabled, and only TLSv1.0 and SSLv3.0 should remain enabled</li>
+<li>the displaying of warnings about invalid web servers certificates should be enabled</li>
+</ul>
+<p><strong>Using the same Session IDs / cookies for SSL and HTTP .:.</strong> It is possible to have an Apache configuration that accepts both HTTP and HTTPS requests on the same server, such as an information website accessible via HTTP, and a transaction part accessible via HTTPS. In this case, the we must be very careful in our web application not to use the same session IDs / cookies for both protocols. Otherwise, an intruder can sniff the HTTP traffic between web server and victim, and can try to use session IDs to get access to authorized part of web application via SSL.</p>
+<h2 id="questions-">Questions ?</h2>
+<h3 id="can-i-use-compression-_and_-ssl-encryption-together-">Can I use Compression <em>and</em> SSL Encryption together?</h3>
+<p>Yes, you can. In fact, our pages at Calomel.org are SSL encrypted with AES at 256 bit and gzip&#39;d at level 9 compression. Using compression will allow you to save up to 175% of your bandwidth as well as reducing the transfer time of your pages to the client. Both processes take a bit of CPU time, but not enough to load a pentium4 3GHz or AMD64 1GHz server box. Client computers today are fast enough (dual and quad core) to do the decryption and decompression without the users seeing much of a cpu slowdown.</p>
+<h3 id="why-do-we-use-a-4096-bit-rsa-key-">Why do we use a 4096 bit RSA key ?</h3>
+<p>The private key sizes for SSL must be either 512, 1024, 2048 or 4096 bits, for compatibility with modern web browsers. To be <a href="http://en.wikipedia.org/wiki/FIPS_140-2">FIPS 140-2 compliant</a> we suggest only using a key size of 4096 bits or larger. All smaller key sizes are concidered weak.</p>
+<h3 id="why-does-my-webserver-have-a-higher-load-now-that-it-serves-ssl-encrypted-traffic-">Why does my webserver have a higher load, now that it serves SSL encrypted traffic?</h3>
+<p>SSL uses strong cryptographic encryption, which necessitates a lot of number crunching. When you request a webpage via HTTPS, everything (even the images) are encrypted before they are transferred. So increased HTTPS traffic leads to increased server load.</p>
+<h3 id="how-do-i-speak-https-manually-command-line-for-testing-purposes-">How do I speak HTTPS manually (command line) for testing purposes?</h3>
+<p>While you usually use telnet to connect to a normal HTTP server:</p>
+<pre class="hljs"><code>$ telnet localhost 80
+HEAD / HTTP/1.0
+</code></pre><p>for simple testing of Apache via HTTP, it&#39;s not so easy for HTTPS because of the SSL protocol between TCP and HTTP. With the help of OpenSSL&#39;s <code class="inline">s_client</code> command, however, you can do a similar check via HTTPS. Because many servers now use <a href="http://en.wikipedia.org/wiki/Server_Name_Indication">Server Name Indication (SNI)</a> the <code class="inline">-servername</code> directive should also be used.</p>
+<pre class="hljs"><code>$ openssl s_client -servername localhost -connect localhost:443 -state -debug
+HEAD / HTTP/1.0
+</code></pre><p>Before the actual HTTP response you will receive detailed information about the SSL handshake. For a more general command line client which directly understands both HTTP and HTTPS, can perform GET and POST operations, can use a proxy, supports byte ranges, etc. you should have a look at the nifty cURL tool. Using this, you can check that your webserver is responding correctly to requests via HTTP and HTTPS as follows:</p>
+<pre class="hljs"><code>$ curl -I http://localhost/
+$ curl -I https://localhost/
+</code></pre><h3 id="every-site-i-go-to-says-the-ssl-certificate-is-expired-or-invalid-">Every site I go to says the SSL certificate is expired or invalid!!</h3>
+<p>Check the system time of your machine. Your browser will compare the expiration date of the SSL certificate with your system&#39;s time. If your computer clock is off by, lets say, 4 years in the past then all certificates that are valid for less than 4 years are instantly expired. Make sure your system&#39;s time is updated using the network time protocol (ntp).</p>
+<p>For example, you may see an error like the following in Firefox if your system clock is slow and the certificate is considered invalid. We got this error by setting the system Firefox ran on to the year 1998.</p>
+<pre class="hljs"><code>  Secure Connection Failed
+
+  An error occurred during a connection to calomel.org.
+  The OCSP response is not yet valid (contains a date in the future).
+  (Error code: sec_error_ocsp_future_response)
+
+  The page you are trying to view can not be shown because the
+  authenticity of the received data could not be verified.
+
+  * Please contact the web site owners to inform them of this problem.
+</code></pre>
+</div></body>
+</html>
